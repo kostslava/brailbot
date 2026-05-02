@@ -7,11 +7,8 @@ export default function Home() {
       {/* Hero */}
       <section className="pt-[72px] pb-[92px]">
         <div
-          className="mx-auto grid items-center gap-14 px-5"
-          style={{
-            maxWidth: 1180,
-            gridTemplateColumns: "1.1fr 0.9fr",
-          }}
+          className="hero-grid mx-auto grid items-center gap-14 px-5"
+          style={{ maxWidth: 1180 }}
         >
           <div className="max-w-[520px]">
             <h1
@@ -114,7 +111,7 @@ export default function Home() {
             How does it work
           </h2>
 
-          <div className="grid grid-cols-2 gap-x-[60px] gap-y-9">
+          <div className="steps-grid grid gap-x-[60px] gap-y-9">
             {[
               {
                 num: 1,

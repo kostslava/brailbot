@@ -43,3 +43,17 @@ body {
 img { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
 button, input, textarea { font: inherit; }
+
+html, body { overflow-x: hidden; }
+
+.hero-grid {
+  grid-template-columns: 1fr;
+}
+.steps-grid {
+  grid-template-columns: 1fr;
+}
+@media (min-width: 860px) {
+  .hero-grid { grid-template-columns: 1.1fr 0.9fr; }
+  .steps-grid { grid-template-columns: 1fr 1fr; }
+}
+
