@@ -96,6 +96,7 @@ class BrailleDisplay:
             self.current_angles[i] = target
             if self.use_gpio:
                 self.servos[i].angle = target
+            time.sleep(0.15)
         time.sleep(delay)
 
     def show_text(self, text: str, char_delay: float = 0.4, on_char=None):
