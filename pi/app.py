@@ -132,7 +132,7 @@ def handle_play(data):
     words = story["text"].split(" ")
     for i, word in enumerate(words):
         for ch in word:
-            display.show_char(ch, delay=0.7)
+            display.show_char(ch, delay=1.2)
             socketio.emit("braille_char", {"char": ch}, to=sid)
         if i < len(words) - 1:
             socketio.emit("braille_char", {"char": " "}, to=sid)
