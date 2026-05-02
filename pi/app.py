@@ -5,6 +5,7 @@ Stories are hardcoded. User picks one from a list → braille servos play it.
 """
 
 import os
+import time
 
 from dotenv import load_dotenv
 from flask import Flask, render_template, jsonify
@@ -128,9 +129,15 @@ def handle_play(data):
     emit("status", {"message": "Playing braille..."})
     emit("clear_braille")
 
-    for ch in story["text"]:
-        display.show_char(ch, delay=0.35)
-        socketio.emit("braille_char", {"char": ch}, to=sid)
+    words = story["text"].split(" ")
+    for i, word in enumerate(words):
+        for ch in word:
+            display.show_char(ch, delay=0.55)
+            socketio.emit("braille_char", {"char": ch}, to=sid)
+        if i < len(words) - 1:
+            socketio.emit("braille_char", {"char": " "}, to=sid)
+            display.show_char(" ", delay=0.1)
+            time.sleep(1.75)
 
     display.reset()
     emit("status", {"message": "Done."})
