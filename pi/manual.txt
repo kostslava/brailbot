@@ -1,216 +1,65 @@
 ===============================================================
   BrailBox — How to Put This on the Raspberry Pi
-  (explained so simply your little brother could do it)
 ===============================================================
 
-
-WHAT YOU NEED ON THE TABLE
---------------------------
-  - Raspberry Pi 4 (with power cable plugged in)
-  - A microSD card with Raspberry Pi OS already on it
-    (if not, go to raspberrypi.com/software, download
-     "Raspberry Pi Imager", pick "Raspberry Pi OS 64-bit",
-     flash it to the SD card, put the SD card in the Pi)
-  - USB microphone plugged into the Pi
-  - 3 servos wired up (see WIRING below)
+WHAT YOU NEED
+-------------
+  - Raspberry Pi 4 (with power cable + SD card with Raspberry Pi OS)
+  - 3x MG90S servos wired up (see below)
   - A laptop on the same WiFi as the Pi
-  - A USB thumb drive OR your laptop (to copy files over)
-
 
 WIRING THE 3 SERVOS
 --------------------
-Each servo has 3 wires:
-  - Orange/Yellow wire = signal (this tells the servo where to spin)
-  - Red wire = power (5V)
-  - Brown/Black wire = ground (GND)
-
-Plug them in like this:
+Each servo has 3 wires (orange = signal, red = 5V, brown = GND):
 
   Servo 1 (top row):     orange → Pin 11 (GPIO 17)
   Servo 2 (middle row):  orange → Pin 13 (GPIO 27)
   Servo 3 (bottom row):  orange → Pin 15 (GPIO 22)
 
-  All 3 red wires → the 5V pin on the Pi (Pin 2 or Pin 4)
-  All 3 brown wires → any GND pin on the Pi (Pin 6, 9, 14, etc.)
-
-  If servos are jittery or weak, use a separate 5V phone charger
-  to power them instead — just connect its ground to a Pi GND pin too.
+  All 3 red wires → 5V pin (Pin 2 or 4)
+  All 3 brown wires → any GND pin (Pin 6, 9, 14, etc.)
 
   Google "Raspberry Pi 4 pinout" to see which pin is which.
 
+STEP BY STEP
+------------
 
-STEP BY STEP — GETTING THE CODE ON THE PI
-------------------------------------------
+STEP 1: Turn on the Pi, connect to WiFi, open Terminal.
 
-STEP 1: Turn on the Pi
-  - Put the SD card in, plug in power, let it boot up
-  - Connect it to WiFi (it'll ask on first boot, or use the
-    WiFi icon in the top right corner)
-  - Open the "Terminal" app (black icon with ">_" on it)
-
-STEP 2: Install the stuff the code needs
-  Copy and paste these lines into the terminal, one at a time.
-  Press Enter after each one. Wait for each to finish before
-  doing the next.
+STEP 2: Install dependencies (one time only):
 
     sudo apt update
-    sudo apt install -y python3-pip python3-venv pigpio espeak libportaudio2 libsndfile1 ffmpeg
+    sudo apt install -y python3-pip python3-venv pigpio
     sudo systemctl enable pigpiod
     sudo systemctl start pigpiod
 
-  What this does: installs Python tools, audio tools, and the
-  servo-smoothing service. You only do this once.
+STEP 3: Copy the pi/ folder onto the Pi.
+  USB drive: copy it, rename to "brailbox" in home folder.
+  Or from your laptop:
+    scp -r pi/ pi@<PI_IP>:~/brailbox/
 
-STEP 3: Get the pi/ folder onto the Pi
-  OPTION A — USB thumb drive:
-    1. On your laptop, copy the entire "pi" folder onto the thumb drive
-    2. Plug the thumb drive into the Pi
-    3. Open the file manager, find the thumb drive
-    4. Copy the "pi" folder to the Desktop (or Home folder)
-    5. Rename it to "brailbox" (right-click → rename)
-
-  OPTION B — From your laptop over WiFi:
-    1. On the Pi's terminal, type:  hostname -I
-       This shows the Pi's IP address (like 192.168.1.42)
-    2. On your laptop's terminal, type:
-         scp -r pi/ pi@192.168.1.42:~/brailbox/
-       (replace 192.168.1.42 with whatever the Pi said)
-    3. It'll ask for the Pi's password (default is "raspberry"
-       unless you changed it)
-
-STEP 4: Set up Python
-  In the Pi's terminal:
+STEP 4: Set up Python:
 
     cd ~/brailbox
     python3 -m venv venv
     source venv/bin/activate
     pip install -r requirements.txt
 
-  This will take a WHILE (10-20 minutes). Whisper (the voice
-  recognition) is a big download. Just let it run. Go get a snack.
-
-STEP 5: Put in your passwords
-  Still in the terminal:
+STEP 5: (Optional) Edit pin numbers if different:
 
     cp .env.example .env
     nano .env
 
-  You're now in a text editor. Change these two lines:
-    SUPABASE_URL=https://vjisdbnlbuzjqzukgppq.supabase.co
-    SUPABASE_KEY=sb_secret_YOUR_ACTUAL_KEY_HERE
-
-  Put in the real Supabase secret key (ask your teammate
-  who set up Supabase, or check the .env.local file in
-  the main project folder on the laptop).
-
-  To save: press Ctrl+O, then Enter, then Ctrl+X to exit.
-
-STEP 6: Test the microphone
-  In the terminal:
-
-    python -m sounddevice
-
-  You should see a list of audio devices. Look for your USB mic.
-  If it's not device 0, note its number and add it to .env:
-    AUDIO_DEVICE=1    (or whatever number it was)
-
-STEP 7: Run it!
+STEP 6: Run it:
 
     python app.py
 
-  You should see:
-    "BrailBox Pi kiosk starting on http://0.0.0.0:5000"
-
-  If you see "gpiozero not available" that's okay if you're
-  testing without servos — it'll just skip the servo part.
-
-STEP 8: Open the kiosk on the laptop
-  On your laptop, open Chrome and go to:
-    http://192.168.1.42:5000
-  (use the Pi's IP address from step 3)
-
-  You should see a dark screen that says "BrailBox" and
-  "Press any key to start."
-
-  That's it. It's running!
-
-
-HOW TO USE IT
--------------
-  1. Press any key → it says "What story would you want to hear?"
-  2. You hear a beep → talk into the mic ("I want a funny story")
-  3. It finds a story, reads the summary, asks "Is that good?"
-  4. Beep → say "yes" or "no"
-  5. If yes → story plays out loud + on screen + on braille servos
-  6. After the story → "Was that good or bad?" → say good or bad
-  7. Done! Press any key to go again. ESC to reset.
-
-
-HOW TO MAKE IT START AUTOMATICALLY WHEN THE PI TURNS ON
--------------------------------------------------------
-  This is optional, but nice for demo day so you don't have to
-  type commands every time.
-
-  In the terminal:
-
-    sudo nano /etc/systemd/system/brailbox.service
-
-  Paste this exactly:
-
-    [Unit]
-    Description=BrailBox Kiosk
-    After=network-online.target pigpiod.service
-    Wants=network-online.target
-
-    [Service]
-    User=pi
-    WorkingDirectory=/home/pi/brailbox
-    Environment=PATH=/home/pi/brailbox/venv/bin:/usr/bin
-    ExecStart=/home/pi/brailbox/venv/bin/python app.py
-    Restart=on-failure
-
-    [Install]
-    WantedBy=multi-user.target
-
-  Save with Ctrl+O, Enter, Ctrl+X. Then:
-
-    sudo systemctl enable brailbox
-    sudo systemctl start brailbox
-
-  Now it'll start by itself every time the Pi boots.
-
-  To also auto-open the browser fullscreen:
-    sudo nano /etc/xdg/lxsession/LXDE-pi/autostart
-
-  Add this line at the bottom:
-    @chromium-browser --kiosk http://localhost:5000
-
-  Save and exit. Reboot the Pi and everything starts on its own.
-
+STEP 7: On your laptop, open:  http://<PI_IP>:5000
+  Type text in the box, hit Send. Servos display braille.
 
 IF SOMETHING GOES WRONG
 ------------------------
-  "No module named gpiozero"
-    → You're not on the Pi, or run: pip install gpiozero pigpio
-
-  Servos are shaking/jittery
-    → Run: sudo pigpiod    (then restart app.py)
-
-  No sound coming out
-    → Run: speaker-test -t wav
-    → Make sure espeak is installed: sudo apt install espeak
-
-  Voice recognition is slow
-    → In .env, change WHISPER_MODEL=tiny (faster but less accurate)
-
-  Can't connect from laptop
-    → Make sure laptop and Pi are on the same WiFi
-    → Check the Pi's IP: hostname -I
-
-  "stories table not found" error
-    → Go to Supabase dashboard → SQL Editor → paste and run the SQL
-      from supabase/migrations/20260502120000_create_stories.sql
-
-  To stop the server: press Ctrl+C in the terminal
-  To restart: python app.py
+  "gpiozero not available" → not on Pi, or: pip install gpiozero pigpio
+  Servos jittering → run: sudo pigpiod
+  Can't connect → same WiFi? check IP: hostname -I
 ===============================================================

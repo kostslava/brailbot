@@ -94,21 +94,41 @@ export default function KioskPage() {
   }, [onKeyDown]);
 
   return (
-    <div className="flex min-h-full flex-col font-sans md:flex-row">
-      <aside className="border-b border-zinc-300 p-4 md:w-72 md:border-b-0 md:border-r md:border-zinc-300 dark:border-zinc-700">
-        <h2 className="text-sm font-semibold">Best rated</h2>
+    <div className="flex min-h-screen" style={{ fontFamily: "var(--font-sans)" }}>
+      {/* Sidebar */}
+      <aside
+        className="flex w-72 shrink-0 flex-col border-r p-6"
+        style={{
+          borderColor: "var(--border-soft)",
+          background: "rgba(21,21,21,0.6)",
+        }}
+      >
+        <h2
+          className="mb-1 font-medium"
+          style={{
+            fontFamily: "var(--font-serif)",
+            fontSize: "1.6rem",
+            color: "var(--text)",
+          }}
+        >
+          Best rated
+        </h2>
         {topError ? (
-          <p className="mt-2 text-xs text-red-600 dark:text-red-400">{topError}</p>
+          <p className="mt-3 text-xs" style={{ color: "#ef4444" }}>{topError}</p>
         ) : topStories.length === 0 ? (
-          <p className="mt-2 text-xs text-zinc-500">No stories yet.</p>
+          <p className="mt-3 text-xs" style={{ color: "var(--text-muted)" }}>No stories yet.</p>
         ) : (
-          <ul className="mt-3 space-y-3 text-xs">
+          <ul className="mt-4 space-y-4 text-sm">
             {topStories.map((s) => (
-              <li key={s.id} className="border-t border-zinc-200 pt-2 dark:border-zinc-800">
-                <p className="text-zinc-800 dark:text-zinc-200">
+              <li
+                key={s.id}
+                className="border-t pt-3"
+                style={{ borderColor: "var(--border-soft)" }}
+              >
+                <p style={{ color: "var(--text-soft)" }}>
                   {s.summary ?? "(no summary)"}
                 </p>
-                <p className="mt-1 text-zinc-500">
+                <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
                   +{s.rating_positive} / −{s.rating_negative}
                 </p>
               </li>
@@ -117,93 +137,166 @@ export default function KioskPage() {
         )}
         <Link
           href="/"
-          className="mt-6 inline-block text-xs text-zinc-600 underline dark:text-zinc-400"
+          className="mt-auto pt-8 text-sm transition-opacity hover:opacity-80"
+          style={{
+            fontFamily: "var(--font-serif)",
+            fontSize: "1.1rem",
+            color: "var(--text-muted)",
+          }}
         >
-          Home
+          ← Home
         </Link>
       </aside>
 
-      <main className="flex min-h-[70vh] flex-1 flex-col justify-center px-6 py-10">
+      {/* Main content */}
+      <main className="flex min-h-[70vh] flex-1 flex-col justify-center px-10 py-12">
         {toast ? (
-          <p className="mb-4 text-center text-sm text-zinc-600 dark:text-zinc-400">
+          <p
+            className="mb-6 text-center"
+            style={{
+              fontFamily: "var(--font-serif)",
+              fontSize: "1.1rem",
+              color: "var(--text-muted)",
+            }}
+          >
             {toast}
           </p>
         ) : null}
 
         {phase === "idle" ? (
           <div className="text-center">
-            <p className="text-lg font-medium">Press any key to find a story</p>
-            <p className="mt-2 text-sm text-zinc-500">
+            <p
+              className="font-medium"
+              style={{
+                fontFamily: "var(--font-serif)",
+                fontSize: "clamp(1.6rem, 3vw, 2.4rem)",
+                color: "var(--text)",
+              }}
+            >
+              Press any key to find a story
+            </p>
+            <p
+              className="mt-3"
+              style={{
+                fontFamily: "var(--font-serif)",
+                fontSize: "1.2rem",
+                color: "var(--text-muted)",
+              }}
+            >
               Escape resets. Pi audio + Whisper hookup next.
             </p>
           </div>
         ) : null}
 
         {phase !== "idle" ? (
-          <div className="mx-auto w-full max-w-2xl space-y-6">
+          <div className="mx-auto w-full max-w-2xl space-y-8">
             <section>
-              <h3 className="text-xs font-medium uppercase text-zinc-500">
+              <h3
+                className="mb-2 text-xs font-medium uppercase tracking-wider"
+                style={{ color: "var(--text-muted)" }}
+              >
                 Transcript
               </h3>
-              <p className="mt-1 min-h-[3rem] rounded border border-zinc-200 bg-zinc-50 p-3 text-sm dark:border-zinc-800 dark:bg-zinc-900">
+              <p
+                className="min-h-[3rem] rounded-2xl p-4 text-sm"
+                style={{
+                  background: "var(--bg-soft)",
+                  border: "1px solid var(--border-soft)",
+                  color: "var(--text-soft)",
+                }}
+              >
                 {transcript}
               </p>
             </section>
 
             <section>
-              <h3 className="text-xs font-medium uppercase text-zinc-500">
+              <h3
+                className="mb-2 text-xs font-medium uppercase tracking-wider"
+                style={{ color: "var(--text-muted)" }}
+              >
                 Match
               </h3>
-              <p className="mt-1 text-sm font-medium">
+              <p
+                className="font-medium"
+                style={{
+                  fontFamily: "var(--font-serif)",
+                  fontSize: "1.4rem",
+                  color: "var(--text)",
+                }}
+              >
                 {matchedTitle ?? "— (matched title from Pi / API)"}
               </p>
-              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+              <p className="mt-1" style={{ color: "var(--text-soft)", fontSize: "1rem" }}>
                 {matchedSummary ?? "— (one-sentence summary)"}
               </p>
             </section>
 
             <section>
-              <h3 className="text-xs font-medium uppercase text-zinc-500">
+              <h3
+                className="mb-2 text-xs font-medium uppercase tracking-wider"
+                style={{ color: "var(--text-muted)" }}
+              >
                 Full story
               </h3>
-              <p className="mt-1 min-h-[6rem] whitespace-pre-wrap rounded border border-zinc-200 bg-zinc-50 p-3 text-sm dark:border-zinc-800 dark:bg-zinc-900">
+              <p
+                className="min-h-[8rem] whitespace-pre-wrap rounded-2xl p-4 text-sm"
+                style={{
+                  background: "var(--bg-soft)",
+                  border: "1px solid var(--border-soft)",
+                  color: "var(--text-soft)",
+                }}
+              >
                 {fullStory ?? "— (shown during playback)"}
               </p>
             </section>
 
-            <section className="flex flex-wrap gap-4 text-sm">
-              <button
-                type="button"
-                className="rounded border border-zinc-300 px-3 py-1.5 dark:border-zinc-600"
-                onClick={() => {
-                  setPhase("matched");
-                  setMatchedTitle("Demo title");
-                  setMatchedSummary("Demo summary line.");
-                }}
-              >
-                Dev: fake match
-              </button>
-              <button
-                type="button"
-                className="rounded border border-zinc-300 px-3 py-1.5 dark:border-zinc-600"
-                onClick={() => {
-                  setPhase("playing");
-                  setFullStory("Demo full story body for layout.");
-                }}
-              >
-                Dev: fake playback
-              </button>
-              <button
-                type="button"
-                className="rounded border border-zinc-300 px-3 py-1.5 dark:border-zinc-600"
-                onClick={() => setPhase("ask_liked")}
-              >
-                Dev: ask liked (Y/N)
-              </button>
+            <section className="flex flex-wrap gap-4">
+              {[
+                {
+                  label: "Dev: fake match",
+                  onClick: () => {
+                    setPhase("matched");
+                    setMatchedTitle("Demo title");
+                    setMatchedSummary("Demo summary line.");
+                  },
+                },
+                {
+                  label: "Dev: fake playback",
+                  onClick: () => {
+                    setPhase("playing");
+                    setFullStory("Demo full story body for layout.");
+                  },
+                },
+                {
+                  label: "Dev: ask liked (Y/N)",
+                  onClick: () => setPhase("ask_liked"),
+                },
+              ].map((btn) => (
+                <button
+                  key={btn.label}
+                  type="button"
+                  onClick={btn.onClick}
+                  className="rounded-full px-5 py-2 text-sm transition-transform hover:-translate-y-0.5"
+                  style={{
+                    background: "var(--bg-soft)",
+                    color: "var(--text-soft)",
+                    border: "1px solid var(--border-soft)",
+                  }}
+                >
+                  {btn.label}
+                </button>
+              ))}
             </section>
 
             {phase === "ask_liked" ? (
-              <p className="text-center text-sm font-medium">
+              <p
+                className="text-center font-medium"
+                style={{
+                  fontFamily: "var(--font-serif)",
+                  fontSize: "1.4rem",
+                  color: "var(--text)",
+                }}
+              >
                 Did you like this story? Press Y or N
               </p>
             ) : null}

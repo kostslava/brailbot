@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Write your story - BrailBox</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="page page-write">
+  <main class="write-main">
+    <div class="container write-container">
+      <a href="index.html" class="back-link">← Back</a>
+
+      <h1 class="write-title">Write your story</h1>
+
+      <form class="story-form">
+        <label for="storyTitle" class="sr-only">Story title</label>
+        <input
+          id="storyTitle"
+          name="storyTitle"
+          type="text"
+          class="story-input"
+          placeholder="Story title"
+        />
+
+        <label for="storyText" class="sr-only">Story text</label>
+        <textarea
+          id="storyText"
+          name="storyText"
+          class="story-textarea"
+          placeholder="Start writing your story here..."
+        ></textarea>
+
+        <button type="submit" class="btn btn-light form-btn">
+          Go for details
+        </button>
+      </form>
+    </div>
+  </main>
+</body>
+</html> 

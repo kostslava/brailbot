@@ -1,30 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
-
-const PROMPT_TIPS = [
-  "A character finds something unexpected in an old drawer.",
-  "The last message before the power went out.",
-  "Someone tells a lie that accidentally becomes true.",
-  "A walk in the rain changes the day.",
-  "The quietest room in the building.",
-];
+import { useCallback, useState } from "react";
 
 export default function SubmitPage() {
+  const [title, setTitle] = useState("");
   const [rawText, setRawText] = useState("");
-  const [tipIndex, setTipIndex] = useState(0);
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">(
     "idle",
   );
   const [message, setMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    const id = window.setInterval(() => {
-      setTipIndex((i) => (i + 1) % PROMPT_TIPS.length);
-    }, 8000);
-    return () => window.clearInterval(id);
-  }, []);
 
   const onSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -56,6 +41,7 @@ export default function SubmitPage() {
         setStatus("done");
         setMessage(data.message ?? "Submitted.");
         setRawText("");
+        setTitle("");
       } catch {
         setStatus("error");
         setMessage("Network error.");
@@ -65,67 +51,121 @@ export default function SubmitPage() {
   );
 
   return (
-    <div className="mx-auto flex min-h-full max-w-4xl flex-col gap-6 px-4 py-8 font-sans md:flex-row md:px-8">
-      <div className="md:w-56 md:shrink-0">
-        <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-          Prompt idea
-        </p>
-        <p className="mt-2 text-sm text-zinc-700 dark:text-zinc-300">
-          {PROMPT_TIPS[tipIndex]}
-        </p>
+    <main
+      className="flex min-h-screen items-start"
+      style={{
+        padding: "48px 0 72px",
+        background:
+          "radial-gradient(circle at 18% 82%, rgba(212,121,18,0.16) 0%, transparent 20%), radial-gradient(circle at 80% 20%, rgba(212,121,18,0.10) 0%, transparent 16%), var(--bg)",
+      }}
+    >
+      <div className="mx-auto w-full px-5" style={{ maxWidth: 1040 }}>
         <Link
           href="/"
-          className="mt-6 inline-block text-sm text-zinc-600 underline dark:text-zinc-400"
+          className="mb-[34px] inline-block transition-opacity hover:opacity-85"
+          style={{
+            fontFamily: "var(--font-serif)",
+            fontSize: "2rem",
+            color: "var(--text)",
+          }}
         >
-          ← Home
+          ← Back
         </Link>
-      </div>
 
-      <main className="min-w-0 flex-1">
-        <h1 className="text-xl font-semibold">Submit a story</h1>
-        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-          No login. Text is sent to the API for moderation and classification
-          (next step).
-        </p>
+        <h1
+          className="mb-[58px] text-center font-medium leading-[0.95]"
+          style={{
+            fontFamily: "var(--font-serif)",
+            fontSize: "clamp(3.2rem, 6vw, 5.4rem)",
+          }}
+        >
+          Write your story
+        </h1>
 
-        <form className="mt-6 flex flex-col gap-3" onSubmit={onSubmit}>
-          <label className="sr-only" htmlFor="story">
+        <form
+          className="flex flex-col items-center gap-[26px]"
+          onSubmit={onSubmit}
+        >
+          <label htmlFor="storyTitle" className="sr-only">
+            Story title
+          </label>
+          <input
+            id="storyTitle"
+            name="storyTitle"
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Story title"
+            disabled={status === "loading"}
+            className="w-full rounded-[36px] border border-transparent outline-none transition-all focus:border-[rgba(255,255,255,0.18)] focus:shadow-[0_0_0_4px_rgba(255,255,255,0.04)]"
+            style={{
+              minHeight: 88,
+              padding: "0 32px",
+              fontSize: "1.2rem",
+              background: "var(--bg-soft)",
+              color: "var(--text)",
+              boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.03)",
+            }}
+          />
+
+          <label htmlFor="storyText" className="sr-only">
             Story text
           </label>
           <textarea
-            id="story"
-            name="story"
+            id="storyText"
+            name="storyText"
             value={rawText}
             onChange={(e) => setRawText(e.target.value)}
-            placeholder="Write your short story here…"
-            rows={14}
-            className="w-full resize-y rounded border border-zinc-300 bg-white p-3 text-base outline-none focus:ring-2 focus:ring-zinc-400 dark:border-zinc-600 dark:bg-zinc-950"
+            placeholder="Start writing your story here..."
             required
             minLength={10}
             disabled={status === "loading"}
+            className="w-full resize-y rounded-[36px] border border-transparent outline-none transition-all focus:border-[rgba(255,255,255,0.18)] focus:shadow-[0_0_0_4px_rgba(255,255,255,0.04)]"
+            style={{
+              minHeight: 480,
+              padding: "28px 32px",
+              fontSize: "1.1rem",
+              background: "var(--bg-soft)",
+              color: "var(--text)",
+              boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.03)",
+            }}
           />
+
           <button
             type="submit"
             disabled={status === "loading" || rawText.trim().length < 10}
-            className="self-start rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
+            className="mt-[18px] inline-flex items-center justify-center rounded-full font-semibold shadow-[0_12px_28px_rgba(0,0,0,0.18)] transition-transform hover:-translate-y-0.5 disabled:opacity-50"
+            style={{
+              fontFamily: "var(--font-serif)",
+              fontSize: "1.8rem",
+              minWidth: 220,
+              minHeight: 68,
+              padding: "16px 34px",
+              background: "var(--button-bg)",
+              color: "var(--button-text)",
+            }}
           >
-            {status === "loading" ? "Submitting…" : "Submit"}
+            {status === "loading" ? "Submitting…" : "Submit story"}
           </button>
         </form>
 
         {message ? (
           <p
-            className={`mt-4 text-sm ${
-              status === "error"
-                ? "text-red-600 dark:text-red-400"
-                : "text-zinc-700 dark:text-zinc-300"
-            }`}
+            className="mt-6 text-center"
+            style={{
+              fontFamily: "var(--font-serif)",
+              fontSize: "1.2rem",
+              color:
+                status === "error"
+                  ? "#ef4444"
+                  : "var(--text-soft)",
+            }}
             role="status"
           >
             {message}
           </p>
         ) : null}
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
