@@ -128,6 +128,44 @@
       font-size: 1.2rem;
       color: var(--text-muted);
     }
+    .dev-panel {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      background: var(--bg-soft);
+      border: 1px solid var(--border-soft);
+      border-radius: 12px;
+      padding: 0.6rem 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      z-index: 100;
+    }
+    .dev-panel input {
+      width: 2.5rem;
+      text-align: center;
+      background: var(--bg);
+      border: 1px solid var(--border-soft);
+      border-radius: 6px;
+      color: var(--text);
+      padding: 0.25rem;
+      font-size: 0.85rem;
+      font-family: monospace;
+    }
+    .dev-panel button {
+      background: var(--border-soft);
+      border: none;
+      border-radius: 6px;
+      color: var(--text-muted);
+      padding: 0.25rem 0.6rem;
+      cursor: pointer;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .dev-panel button:hover { color: var(--text); }
   </style>
 </head>
 <body>
@@ -141,6 +179,12 @@
     <div class="status" id="status"></div>
     <div class="output-area" id="output"><span class="pick-prompt">← Pick a story from the list</span></div>
     <div class="braille-display" id="brailleChar">&nbsp;</div>
+  </div>
+
+  <div class="dev-panel">
+    <span>dev</span>
+    <input type="text" id="devChar" maxlength="1" placeholder="a">
+    <button id="devSend">Send</button>
   </div>
 
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
@@ -196,6 +240,14 @@
     socket.on('clear_braille', () => {
       outputEl.textContent = '';
       brailleEl.innerHTML = '&nbsp;';
+    });
+
+    document.getElementById('devSend').addEventListener('click', () => {
+      const ch = document.getElementById('devChar').value;
+      if (ch) socket.emit('test_char', { char: ch });
+    });
+    document.getElementById('devChar').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') document.getElementById('devSend').click();
     });
 
     socket.on('braille_char', (data) => {

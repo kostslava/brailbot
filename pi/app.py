@@ -143,6 +143,14 @@ def handle_play(data):
     emit("status", {"message": "Done."})
 
 
+@socketio.on("test_char")
+def handle_test_char(data):
+    ch = data.get("char", "")[:1]
+    if ch:
+        display.show_char(ch, delay=1.56)
+        emit("braille_char", {"char": ch})
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", "5000"))
     print(f"BrailBox Pi kiosk starting on http://0.0.0.0:{port}")
