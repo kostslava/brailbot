@@ -1,0 +1,160 @@
+===============================================================
+  BrailBox — Raspberry Pi 4 Setup Manual
+===============================================================
+
+OVERVIEW
+--------
+The Pi runs a Python Flask server that:
+  1. Serves a kiosk web page (shown on the laptop display)
+  2. Listens for voice input via a USB microphone (Whisper STT)
+  3. Searches Supabase for matching stories
+  4. Reads stories aloud (pyttsx3 TTS) + shows on screen + drives
+     3 servos to display braille characters in real time
+  5. Collects user ratings via voice
+
+HARDWARE NEEDED
+---------------
+  - Raspberry Pi 4 (2GB+ RAM recommended for Whisper base model)
+  - 3x MG90S servos with the 3D-printed braille bumps attached
+  - USB microphone (or USB sound card + mic)
+  - Laptop connected to Pi's network (or Pi's own display)
+  - 5V power supply for servos (do NOT power from Pi GPIO directly
+    if running all 3 — use an external 5V BEC or USB power)
+  - Jumper wires
+
+WIRING (BCM pin numbering)
+---------------------------
+  Servo 1 (top row):    signal → GPIO 17,  power → 5V,  GND → GND
+  Servo 2 (middle row): signal → GPIO 27,  power → 5V,  GND → GND
+  Servo 3 (bottom row): signal → GPIO 22,  power → 5V,  GND → GND
+
+  All 3 servos share 5V and GND from the external power supply.
+  Connect the power supply GND to a Pi GND pin as well (common ground).
+
+  The braille cell layout (per character):
+      [dot1] [dot4]    ← top servo
+      [dot2] [dot5]    ← middle servo
+      [dot3] [dot6]    ← bottom servo
+
+  Servo positions:
+    90°  = both dots raised (left + right)
+    15°  = right dot only
+    165° = left dot only
+    0°/180° = no dots (whichever is closest to current position)
+
+SOFTWARE SETUP
+--------------
+1. Flash Raspberry Pi OS (64-bit recommended) onto an SD card.
+
+2. Boot the Pi, connect to WiFi, and open a terminal.
+
+3. Install system dependencies:
+     sudo apt update
+     sudo apt install -y python3-pip python3-venv pigpio espeak \
+       libportaudio2 libsndfile1 ffmpeg git
+
+4. Start the pigpio daemon (required for smooth servo PWM):
+     sudo systemctl enable pigpiod
+     sudo systemctl start pigpiod
+
+5. Copy the entire `pi/` folder to the Pi:
+     scp -r pi/ pi@<pi-ip>:~/brailbox/
+
+6. On the Pi, create a virtual environment and install:
+     cd ~/brailbox
+     python3 -m venv venv
+     source venv/bin/activate
+     pip install -r requirements.txt
+
+   Note: Whisper install will take a while. On Pi 4 with 2GB RAM,
+   use WHISPER_MODEL=tiny or base. 'small' needs 4GB+ RAM.
+
+7. Create the .env file:
+     cp .env.example .env
+     nano .env
+   Fill in your real Supabase URL and secret key.
+
+8. Test audio devices:
+     python -m sounddevice
+   Note the index of your USB mic and set AUDIO_DEVICE in .env if needed.
+
+9. Run the server:
+     python app.py
+
+   The kiosk will be available at http://<pi-ip>:5000
+
+USING THE KIOSK
+---------------
+1. Open http://<pi-ip>:5000 in Chromium on the laptop (or the Pi itself).
+   For true kiosk mode, launch Chromium with:
+     chromium-browser --kiosk http://localhost:5000
+
+2. Press ANY key on the keyboard to start a session.
+
+3. The system says "What story would you want to hear?" (audio + screen + braille).
+
+4. After the beep, speak your request (e.g., "I want a motivational story").
+   You have about 6 seconds to speak.
+
+5. The system finds a matching story from Supabase, reads the summary,
+   and asks "Is that good?"
+
+6. After the beep, say "yes" or "no".
+   - Yes → the full story plays (audio + screen + braille, sentence by sentence).
+     The braille runs at ~0.35s per character. Audio pauses at each sentence
+     boundary to let braille catch up.
+   - No → returns to idle. Press any key to try again.
+
+7. After the story, it asks "Was that good or bad?"
+   Say "good"/"great"/etc. or "bad"/"terrible"/etc.
+   This updates rating_positive or rating_negative in Supabase.
+
+8. Press ESC at any time to reset to idle.
+
+AUTO-START ON BOOT (optional)
+------------------------------
+Create a systemd service:
+
+  sudo nano /etc/systemd/system/brailbox.service
+
+Paste:
+  [Unit]
+  Description=BrailBox Kiosk
+  After=network-online.target pigpiod.service
+  Wants=network-online.target
+
+  [Service]
+  User=pi
+  WorkingDirectory=/home/pi/brailbox
+  Environment=PATH=/home/pi/brailbox/venv/bin:/usr/bin
+  ExecStart=/home/pi/brailbox/venv/bin/python app.py
+  Restart=on-failure
+
+  [Install]
+  WantedBy=multi-user.target
+
+Then:
+  sudo systemctl enable brailbox
+  sudo systemctl start brailbox
+
+For kiosk display auto-start, add to /etc/xdg/lxsession/LXDE-pi/autostart:
+  @chromium-browser --kiosk http://localhost:5000
+
+TROUBLESHOOTING
+---------------
+- "gpiozero not available": You're not on a Pi, or gpiozero isn't installed.
+  The server will still run in simulation mode (no servo movement).
+
+- Servos jittering: Make sure pigpiod is running (`sudo pigpiod`).
+  Hardware PWM via pigpio eliminates jitter vs software PWM.
+
+- No audio output: Check `aplay -l` and `speaker-test -t wav`.
+  pyttsx3 uses espeak by default — make sure it's installed.
+
+- Whisper too slow: Use WHISPER_MODEL=tiny (fastest, less accurate).
+
+- "ALSA underrun" warnings: Normal on Pi, can be ignored.
+
+- Supabase errors: Verify your URL and key in .env. Run the migration
+  SQL from supabase/migrations/ if the stories table doesn't exist.
+===============================================================

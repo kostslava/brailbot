@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BrailBox Kiosk</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0a0a0a;
+      color: #ededed;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .phase-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #888;
+      margin-bottom: 1.5rem;
+    }
+    .main-text {
+      font-size: 1.1rem;
+      max-width: 600px;
+      text-align: center;
+      line-height: 1.6;
+      min-height: 4rem;
+    }
+    .transcript {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      max-width: 600px;
+      width: 100%;
+      min-height: 3rem;
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+    .braille-display {
+      margin-top: 1.5rem;
+      font-family: monospace;
+      font-size: 2rem;
+      letter-spacing: 0.3em;
+      color: #fff;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 0.75rem 1.5rem;
+      min-width: 3rem;
+      text-align: center;
+    }
+    .hint {
+      margin-top: 2rem;
+      font-size: 0.8rem;
+      color: #555;
+    }
+    .listening-indicator {
+      display: none;
+      margin-top: 1rem;
+      width: 12px; height: 12px;
+      background: #ef4444;
+      border-radius: 50%;
+      animation: pulse 1s infinite;
+    }
+    .listening-indicator.active { display: inline-block; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+  </style>
+</head>
+<body>
+  <h1>BrailBox</h1>
+  <div class="phase-label" id="phase">Press any key to start</div>
+  <div class="main-text" id="mainText">Welcome to BrailBox. Press any key on the keyboard to begin.</div>
+  <div class="listening-indicator" id="listenDot"></div>
+  <div class="transcript" id="transcript"></div>
+  <div class="braille-display" id="brailleChar">&nbsp;</div>
+  <div class="hint">ESC to reset</div>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script>
+    const socket = io();
+    const phaseEl = document.getElementById('phase');
+    const mainEl = document.getElementById('mainText');
+    const transcriptEl = document.getElementById('transcript');
+    const brailleEl = document.getElementById('brailleChar');
+    const listenDot = document.getElementById('listenDot');
+
+    let sessionActive = false;
+
+    socket.on('connect', () => {
+      console.log('Connected:', socket.id);
+    });
+
+    socket.on('phase', (data) => {
+      const p = data.phase;
+      phaseEl.textContent = p.replace(/_/g, ' ').toUpperCase();
+      listenDot.classList.toggle('active', p === 'listening' || p === 'confirm_listen' || p === 'ask_rating');
+
+      if (data.message) mainEl.textContent = data.message;
+      if (data.summary) mainEl.textContent = data.summary;
+
+      if (p === 'idle') {
+        sessionActive = false;
+        brailleEl.innerHTML = '&nbsp;';
+      }
+      if (p === 'greeting') mainEl.textContent = 'What story would you want to hear?';
+      if (p === 'listening') mainEl.textContent = 'Listening...';
+      if (p === 'playing') mainEl.textContent = 'Playing story...';
+      if (p === 'ask_rating') mainEl.textContent = 'Was that good or bad?';
+    });
+
+    socket.on('transcript', (data) => {
+      transcriptEl.textContent = 'You said: ' + data.text;
+    });
+
+    socket.on('sentence', (data) => {
+      mainEl.textContent = data.text;
+    });
+
+    socket.on('braille_char', (data) => {
+      brailleEl.textContent = data.char;
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        sessionActive = false;
+        phaseEl.textContent = 'PRESS ANY KEY TO START';
+        mainEl.textContent = 'Welcome to BrailBox. Press any key on the keyboard to begin.';
+        transcriptEl.textContent = '';
+        brailleEl.innerHTML = '&nbsp;';
+        listenDot.classList.remove('active');
+        return;
+      }
+      if (!sessionActive && !e.repeat) {
+        sessionActive = true;
+        phaseEl.textContent = 'STARTING...';
+        mainEl.textContent = 'Starting up...';
+        socket.emit('start_session', { sid: socket.id });
+      }
+    });
+  </script>
+</body>
+</html>
