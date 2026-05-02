@@ -1,0 +1,133 @@
+BRAILBOX — 5-Minute Demo Pitch
+================================
+
+[~30 sec] HOOK
+--------------
+"1 in 4 visually impaired adults say the hardest part isn't reading —
+it's being left out of the story. BrailBox fixes that."
+
+Hold up the device. Let them see it.
+
+"This is a community storytelling kiosk that anyone can walk up to
+and experience a story in three ways at once: they hear it, they see
+it on screen, and they feel it — in real-time braille."
+
+
+[~45 sec] THE PROBLEM
+---------------------
+- Braille literacy is declining. Only 10% of blind Americans read braille,
+  down from over 50% in the 1960s. The hardware is expensive and the
+  content is limited.
+- Most assistive tech treats accessibility as an afterthought — a screen
+  reader bolted on top of something built for sighted users.
+- There's no simple, community-driven way to share stories that are
+  accessible by default.
+
+
+[~60 sec] THE SOLUTION
+----------------------
+BrailBox has two sides:
+
+1. THE WEB APP — anyone, anywhere, submits a short story. AI moderates
+   it for safety, classifies it by theme and mood, cleans up the text,
+   and publishes it to our database. No login, no friction.
+
+2. THE KIOSK — a Raspberry Pi in a library, school, or community center.
+   You walk up, press a key, and say what kind of story you want.
+   "Tell me something motivational." It finds a match, reads the summary,
+   and asks if you're interested. Say yes, and the full story plays —
+   spoken aloud, displayed on screen, and rendered letter-by-letter on
+   a physical braille display built from three hobby servos and a
+   3D-printed mechanism.
+
+   The braille and audio are synchronized sentence by sentence so nothing
+   gets out of sync. After the story, you rate it with your voice — good
+   or bad — and that feeds back into the ranking so the best stories
+   rise to the top.
+
+
+[~90 sec] LIVE DEMO
+--------------------
+Do this live. Practice it twice beforehand.
+
+1. Open the submit page on your phone/laptop. Type or paste a short
+   story (have one ready — 3-4 sentences, motivational theme).
+   Hit submit. Show it going through moderation + classification.
+   "Published."
+
+2. Walk over to the kiosk (Pi + laptop + braille display).
+   Press a key. Wait for "What story would you want to hear?"
+   Say: "I want a motivational story."
+   It finds the story you just submitted. Summary plays.
+   "Is that good?" — "Yes."
+   Full story plays. Point out the three outputs happening together:
+     - Audio from the speaker
+     - Text on screen, sentence by sentence
+     - Servos physically rotating to form each braille letter
+
+3. After the story: "Was that good?" — "Good."
+   Show the rating increment on the sidebar.
+
+Keep narrating what's happening as it runs. Judges shouldn't have to
+guess what they're looking at.
+
+
+[~30 sec] HOW WE BUILT IT
+--------------------------
+- Next.js web app + Supabase database + Backboard AI for moderation
+- Raspberry Pi 4 running a Python Flask server
+- OpenAI Whisper for on-device speech recognition (no cloud STT needed)
+- pyttsx3 for text-to-speech
+- 3 MG90S servos controlled via GPIO + pigpio for jitter-free braille
+- 3D-printed servo attachments with 1-dot and 2-dot bump patterns
+- Real-time sync over WebSockets between audio, screen, and servos
+
+Total hardware cost for the braille display: under $15.
+
+
+[~30 sec] WHAT'S NEXT
+----------------------
+- Multi-language support (braille is universal, the encoding changes)
+- A full 6-servo, 2-character display for faster reading
+- Partner with libraries and schools for pilot deployments
+- Let users contribute stories by voice, not just text
+
+
+[~15 sec] CLOSE
+---------------
+"A $15 braille display. Community stories. Three senses at once.
+BrailBox makes storytelling accessible — not as an afterthought,
+but as the whole point."
+
+
+================================
+JUDGE Q&A — LIKELY QUESTIONS AND ANSWERS
+================================
+
+Q: Why servos instead of solenoids or a commercial braille display?
+A: Commercial refreshable braille displays cost $3,000-$6,000. Ours
+   costs $15 in servos and filament. Servos are slow for continuous
+   reading, but for a kiosk experience synced with audio, speed isn't
+   the bottleneck — the narration pace is.
+
+Q: How does the AI moderation work?
+A: Stories go through a Backboard-hosted LLM that acts as a safety
+   filter. It's intentionally lenient — approves humor, satire, and
+   casual language, but catches hate speech, threats, and explicit
+   content. A second LLM pass classifies theme, mood, age group, and
+   generates a clean version of the text.
+
+Q: Can this scale?
+A: The web side is serverless Next.js + Supabase — scales by default.
+   Each kiosk is a self-contained Pi that just needs WiFi. Deploy a
+   new one by flashing an SD card and plugging in.
+
+Q: What about braille grade 2 (contractions)?
+A: We're using grade 1 (letter-by-letter) right now for simplicity
+   and because it maps cleanly to audio timing. Grade 2 is a clear
+   next step.
+
+Q: Is Whisper accurate enough on a Pi?
+A: With the "base" model and a decent USB mic, yes — especially for
+   short phrases like "motivational story" or "yes." We keep the
+   expected vocabulary narrow, which helps a lot.
